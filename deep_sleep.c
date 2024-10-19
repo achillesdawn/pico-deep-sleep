@@ -37,6 +37,22 @@ void sleep_goto_sleep_until(datetime_t *t, rtc_callback_t callback) {
     __wfi();
 }
 
+// Go to sleep until woken up by the RTC
+void dormant_until(datetime_t *t, rtc_callback_t callback) {
+
+    // Turn off all clocks when in sleep mode except for RTC
+    clocks_hw->sleep_en0 = CLOCKS_SLEEP_EN0_CLK_RTC_RTC_BITS;
+    clocks_hw->sleep_en1 = 0x0;
+
+    rtc_set_alarm(t, callback);
+
+    uint save = scb_hw->scr;
+    // Enable deep sleep at the proc
+    scb_hw->scr = save | M0PLUS_SCR_SLEEPDEEP_BITS;
+
+    rosc_dormant();
+}
+
 int main() {
     stdio_init_all();
 
@@ -91,6 +107,8 @@ int main() {
     gpio_put(LED, false);
 
     run_from_rosc(true);
+    // run_from_xosc(1 * MHZ);
+
     sleep_goto_sleep_until(&target_sleep, &rtc_callback_on_wake);
 
     while (!awake) {
