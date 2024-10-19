@@ -16,8 +16,6 @@ volatile bool awake = false;
 
 void rtc_callback_on_wake() {
     awake = true;
-    gpio_put(LED, true);
-    printf("woken up");
 }
 
 // Go to sleep until woken up by the RTC
@@ -50,7 +48,7 @@ void dormant_until(datetime_t *t, rtc_callback_t callback) {
     // Enable deep sleep at the proc
     scb_hw->scr = save | M0PLUS_SCR_SLEEPDEEP_BITS;
 
-    rosc_dormant();
+    dormant_xosc();
 }
 
 int main() {
@@ -70,12 +68,6 @@ int main() {
         gpio_put(LED, true);
         sleep_ms(100);
     }
-
-    printf(
-        "SLEEP EN0:%d, SLEEP EN1: %d",
-        clocks_hw->sleep_en0,
-        clocks_hw->sleep_en1
-    );
 
     rtc_init();
 
@@ -103,19 +95,26 @@ int main() {
     target_sleep.sec = target_sleep.sec + 15;
     sleep_state_t *sleep_state = sleep_state_save();
 
+
+    run_from_rosc();
+    // run_from_rosc_with_usb();
+
+    // measure_freqs();
+    // run_from_xosc(1 * MHZ);
+    // run_from_xosc_rtc_rosc(6 * MHZ);
+
+
     printf("going to sleep for 15 sec");
     gpio_put(LED, false);
 
-    run_from_rosc(true);
-    // run_from_xosc(1 * MHZ);
-
     sleep_goto_sleep_until(&target_sleep, &rtc_callback_on_wake);
+    // dormant_until(&target_sleep, &rtc_callback_on_wake);
 
     while (!awake) {
         tight_loop_contents();
     }
 
-    recover_from_sleep(sleep_state); 
+    sleep_state_recover(sleep_state); 
 
     for (uint8_t i = 0; i < 20; i++) {
         gpio_put(LED, false);
@@ -123,4 +122,7 @@ int main() {
         gpio_put(LED, true);
         sleep_ms(100);
     }
+
+    printf("woke up");
+    measure_freqs();
 }
