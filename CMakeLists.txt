@@ -53,6 +53,7 @@ add_executable(deep_sleep
     deep_sleep.c
     hardware_rosc/rosc.c
     clocks/clocks.c
+    clocks/sleep.c
  )
 
 pico_set_program_name(deep_sleep "deep_sleep")
