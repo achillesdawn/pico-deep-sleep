@@ -6,7 +6,7 @@
 #include "hardware/clocks.h"
 #include "hardware/pll.h"
 #include "hardware/xosc.h"
-#include "rosc.h"
+#include "hardware_rosc/rosc.h"
 
 #include "pico/runtime_init.h"
 #include "pico/stdlib.h"
