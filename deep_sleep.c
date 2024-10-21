@@ -13,17 +13,17 @@
 #include "hardware/structs/scb.h"
 
 const uint8_t LED = 8;
-
-volatile bool awake = false;
+const uint8_t RED_LED = 12;
+const uint32_t OUT_MASK = (1 << LED) | (1 << RED_LED);
 
 void rtc_callback_on_wake() {}
 
 void setup() {
     stdio_init_all();
 
-    gpio_init(LED);
-    gpio_set_dir(LED, GPIO_OUT);
-    gpio_put(LED, true);
+    gpio_init_mask(OUT_MASK);
+    gpio_set_dir_out_masked(OUT_MASK);
+    gpio_put_masked(OUT_MASK, false);
 
     rtc_init();
 }
@@ -49,43 +49,43 @@ void set_datetime() {
 
 int main() {
     setup();
-    measure_freqs();
 
     for (uint8_t i = 0; i < 10; i++) {
-        gpio_put(LED, false);
-        sleep_ms(100);
         gpio_put(LED, true);
+        sleep_ms(100);
+        gpio_put(LED, false);
         sleep_ms(100);
     }
 
-    gpio_put(LED, false);
+    set_datetime();
+    datetime_t sleep_target;
 
-    datetime_t target_sleep;
+    rtc_get_datetime(&sleep_target);
 
-    rtc_get_datetime(&target_sleep);
+    sleep_target.sec = sleep_target.sec + 10;
 
-    target_sleep.sec = target_sleep.sec + 15;
+    printf("going to sleep for 15 sec");
 
     run_from_rosc();
+
     // run_from_rosc_with_usb();
 
     // measure_freqs();
     // run_from_xosc(1 * MHZ);
     // run_from_xosc_rtc_rosc(6 * MHZ);
 
-    printf("going to sleep for 15 sec");
+    sleep_goto_sleep_until(&sleep_target);
 
-    sleep_goto_sleep_until(&target_sleep, &rtc_callback_on_wake);
     // dormant_until(&target_sleep, &rtc_callback_on_wake);
-
-    while (!awake) {
-        tight_loop_contents();
-    }
 
     for (uint8_t i = 0; i < 20; i++) {
         gpio_put(LED, false);
         sleep_ms(100);
         gpio_put(LED, true);
         sleep_ms(100);
+    }
+
+    while (true) {
+        tight_loop_contents();
     }
 }

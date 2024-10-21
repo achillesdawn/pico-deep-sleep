@@ -1,8 +1,10 @@
-#include "clocks.h"
-
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "clocks.h"
+
+#include "pico.h"
 
 #include "hardware/clocks.h"
 #include "hardware/pll.h"
@@ -41,17 +43,25 @@ void measure_freqs(void) {
 }
 
 bool set_peripheral_clk() {
-    clock_configure(clk_peri, 0,
-                    CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB, 48 * 1000,
-                    48 * 1000);
+    clock_configure(
+        clk_peri,
+        0,
+        CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        48 * 1000,
+        48 * 1000
+    );
 
     stdio_init_all();
 }
 
 bool set_usb_clk() {
-    clock_configure(clk_peri, 0,
-                    CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB, 48 * KHZ,
-                    48 * KHZ);
+    clock_configure(
+        clk_peri,
+        0,
+        CLOCKS_CLK_PERI_CTRL_AUXSRC_VALUE_CLKSRC_PLL_USB,
+        48 * KHZ,
+        48 * KHZ
+    );
 
     stdio_init_all();
 }
@@ -62,20 +72,33 @@ void run_from_rosc() {
     uint32_t requested_freq = src_hz;
 
     // CLK_REF = ROSC
-    clock_configure(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH, 0,
-                    src_hz, requested_freq);
+    clock_configure(
+        clk_ref,
+        CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH,
+        0,
+        src_hz,
+        requested_freq
+    );
 
     // CLK SYS = CLK REF
-    clock_configure(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF, 0,
-                    requested_freq, requested_freq);
+    clock_configure(
+        clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF,
+        0,
+        requested_freq,
+        requested_freq
+    );
 
     clock_stop(clk_adc);
     clock_stop(clk_usb);
 
-    clock_configure(clk_rtc,
-                    0,  // No GLMUX
-                    CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH, src_hz,
-                    46875);
+    clock_configure(
+        clk_rtc,
+        0, // No GLMUX
+        CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH,
+        src_hz,
+        46875
+    );
 
     clock_stop(clk_peri);
 
@@ -91,20 +114,33 @@ void run_from_rosc_with_usb() {
     uint32_t requested_freq = src_hz;
 
     // CLK_REF = ROSC
-    clock_configure(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH, 0,
-                    src_hz, requested_freq);
+    clock_configure(
+        clk_ref,
+        CLOCKS_CLK_REF_CTRL_SRC_VALUE_ROSC_CLKSRC_PH,
+        0,
+        src_hz,
+        requested_freq
+    );
 
     // CLK SYS = CLK REF
-    clock_configure(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF, 0,
-                    requested_freq, requested_freq);
+    clock_configure(
+        clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF,
+        0,
+        requested_freq,
+        requested_freq
+    );
 
     clock_stop(clk_adc);
     // clock_stop(clk_usb);
 
-    clock_configure(clk_rtc,
-                    0,  // No GLMUX
-                    CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH, src_hz,
-                    46875);
+    clock_configure(
+        clk_rtc,
+        0, // No GLMUX
+        CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH,
+        src_hz,
+        46875
+    );
 
     clock_stop(clk_peri);
 
@@ -120,21 +156,34 @@ void run_from_xosc_rtc_rosc(uint32_t requested_freq) {
     uint32_t src_hz = XOSC_MHZ * MHZ;
 
     // CLK_REF = XOSC
-    clock_configure(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC, 0,
-                    src_hz, requested_freq);
+    clock_configure(
+        clk_ref,
+        CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC,
+        0,
+        src_hz,
+        requested_freq
+    );
 
     // CLK SYS = CLK REF
-    clock_configure(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF, 0,
-                    requested_freq, requested_freq);
+    clock_configure(
+        clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF,
+        0,
+        requested_freq,
+        requested_freq
+    );
 
     clock_stop(clk_adc);
     clock_stop(clk_usb);
 
     // set the RTC to run from ROSC
-    clock_configure(clk_rtc,
-                    0,  // No GLMUX
-                    CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH, src_hz,
-                    46875);
+    clock_configure(
+        clk_rtc,
+        0, // No GLMUX
+        CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_ROSC_CLKSRC_PH,
+        src_hz,
+        46875
+    );
 
     clock_stop(clk_peri);
     pll_deinit(pll_usb);
@@ -148,20 +197,33 @@ void run_from_xosc(uint32_t requested_freq) {
     uint32_t src_hz = XOSC_MHZ * MHZ;
 
     // CLK_REF = XOSC
-    clock_configure(clk_ref, CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC, 0,
-                    src_hz, requested_freq);
+    clock_configure(
+        clk_ref,
+        CLOCKS_CLK_REF_CTRL_SRC_VALUE_XOSC_CLKSRC,
+        0,
+        src_hz,
+        requested_freq
+    );
 
     // CLK SYS = CLK REF
-    clock_configure(clk_sys, CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF, 0,
-                    requested_freq, requested_freq);
+    clock_configure(
+        clk_sys,
+        CLOCKS_CLK_SYS_CTRL_SRC_VALUE_CLK_REF,
+        0,
+        requested_freq,
+        requested_freq
+    );
 
     clock_stop(clk_adc);
     clock_stop(clk_usb);
 
-    clock_configure(clk_rtc,
-                    0,  // No GLMUX
-                    CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_XOSC_CLKSRC, src_hz,
-                    46875);
+    clock_configure(
+        clk_rtc,
+        0, // No GLMUX
+        CLOCKS_CLK_RTC_CTRL_AUXSRC_VALUE_XOSC_CLKSRC,
+        src_hz,
+        46875
+    );
 
     clock_stop(clk_peri);
     pll_deinit(pll_usb);
